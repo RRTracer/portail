@@ -22,9 +22,9 @@ Site statique généré depuis un fichier JSON — aucun framework, aucune dépe
 | Outil | Usage | Disponibilité |
 |---|---|---|
 | `bash` 4.3+ | Exécuter le script | Préinstallé |
-| `python3` | Lire le JSON (stdlib uniquement) | Préinstallé |
+| `jq` 1.6+ | Lire le JSON | `apt install jq` |
 
-Aucune installation supplémentaire requise.
+Aucune installation supplémentaire requise si `jq` est déjà présent.
 
 ---
 

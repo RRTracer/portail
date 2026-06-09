@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # generate.sh — Portail infrastructure
 # Usage : bash generate.sh
-# Deps  : python3 stdlib (déjà installé — utilisé uniquement pour lire le JSON)
 
 set -euo pipefail
 
@@ -10,43 +9,28 @@ OUTPUT="index.html"
 ICONS="assets/icons"
 
 [[ -f "$SERVICES" ]] || { echo "Erreur : $SERVICES introuvable."; exit 1; }
-command -v python3 >/dev/null 2>&1 || { echo "Erreur : python3 requis."; exit 1; }
+command -v jq >/dev/null 2>&1 || { echo "Erreur : jq requis."; exit 1; }
 
 # ── Parsing JSON → variables bash ──────────────────────────────────────────
-# python3 convertit le JSON en déclarations bash, le reste est du bash pur
-_tmp=$(mktemp)
-trap 'rm -f "$_tmp"' EXIT
 
-python3 - "$SERVICES" > "$_tmp" << 'PYEOF'
-import json, sys, shlex
+TITRE=$(jq -r '.meta.titre' "$SERVICES")
+SOUS_TITRE=$(jq -r '.meta.sous_titre' "$SERVICES")
 
-with open(sys.argv[1], encoding='utf-8') as f:
-    data = json.load(f)
+mapfile -t FAVORIS < <(
+    jq -r '.favoris[] | "\(.nom)|\(.description)|\(.url)|\(.icone // "")|\(.tag // "")"' "$SERVICES"
+)
 
-def q(s): return shlex.quote(str(s))
-def row(s): return '|'.join([s['nom'], s['description'], s['url'],
-                              s.get('icone',''), s.get('tag','')])
+mapfile -t CATEGORIES < <(jq -r '.categories[].id' "$SERVICES")
 
-print(f'TITRE={q(data["meta"]["titre"])}')
-print(f'SOUS_TITRE={q(data["meta"]["sous_titre"])}')
-
-favs = [row(s) for s in data['favoris']]
-print('FAVORIS=(' + ' '.join(q(f) for f in favs) + ')')
-
-ids = []
-for cat in data['categories']:
-    cid = cat['id']
-    ids.append(cid)
-    svcs = [row(s) for s in cat['services']]
-    print(f'CAT_LABEL_{cid}={q(cat["label"])}')
-    print(f'CAT_COULEUR_{cid}={q(cat["couleur"])}')
-    print(f'SERVICES_{cid}=(' + ' '.join(q(s) for s in svcs) + ')')
-
-print('CATEGORIES=(' + ' '.join(q(i) for i in ids) + ')')
-PYEOF
-
-# shellcheck source=/dev/null
-source "$_tmp"
+for id in "${CATEGORIES[@]}"; do
+    declare "CAT_LABEL_${id}=$(jq -r --arg id "$id" '.categories[] | select(.id==$id) | .label' "$SERVICES")"
+    declare "CAT_COULEUR_${id}=$(jq -r --arg id "$id" '.categories[] | select(.id==$id) | .couleur' "$SERVICES")"
+    mapfile -t "SERVICES_${id}" < <(
+        jq -r --arg id "$id" \
+            '.categories[] | select(.id==$id) | .services[] | "\(.nom)|\(.description)|\(.url)|\(.icone // "")|\(.tag // "")"' \
+            "$SERVICES"
+    )
+done
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  GÉNÉRATION HTML — bash pur à partir d'ici
