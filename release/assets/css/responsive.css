@@ -1,0 +1,64 @@
+/* responsive.css — Adaptations par breakpoint */
+
+/* ── Tablette (< 1024px) ─────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  :root {
+    --card-min:     180px;
+    --card-fav-min: 220px;
+  }
+
+  .site-main {
+    padding: var(--sp-lg);
+    gap: var(--sp-xl);
+  }
+}
+
+/* ── Mobile (< 640px) ───────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  :root {
+    --card-min:     100%;
+    --card-fav-min: 100%;
+  }
+
+  .site-header {
+    padding: var(--sp-md);
+  }
+
+  .site-header__inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-xs);
+  }
+
+  /* La date prend de la place inutilement sur mobile */
+  .site-header__date {
+    display: none;
+  }
+
+  .site-nav__list {
+    padding: 0 var(--sp-md);
+  }
+
+  .site-main {
+    padding: var(--sp-md);
+    gap: var(--sp-xl);
+  }
+
+  .cards-grid,
+  .cards-grid--favoris {
+    grid-template-columns: 1fr;
+    gap: var(--sp-sm);
+  }
+
+  .card--favori {
+    padding: var(--sp-md);
+  }
+}
+
+/* ── Grand écran (> 1600px) ─────────────────────────────────────────────── */
+@media (min-width: 1600px) {
+  :root {
+    --card-min:     240px;
+    --card-fav-min: 300px;
+  }
+}
